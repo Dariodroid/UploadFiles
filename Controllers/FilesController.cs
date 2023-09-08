@@ -16,7 +16,7 @@ namespace UploadFiles.Controllers
         {
             try
             {
-                string ruta = _env.ContentRootPath+ "wwwroot\\" + folderName;
+                string ruta = _env.ContentRootPath+ "wwwroot//" + folderName;
                 if (!Directory.Exists(ruta))
                 {
                     // Se crea la carpeta con el nombre dado si no existe
@@ -53,13 +53,49 @@ namespace UploadFiles.Controllers
                 fileUrls = fileUrls.TrimEnd('|');
 
                 // Se devuelve un mensaje de éxito con las URLs de los archivos
-                return Ok("Los archivos se han guardado correctamente en la carpeta " + filePath + ". Las URLs de los archivos son: " + fileUrls);
+                return Ok("Los archivos se han guardado correctamente en la carpeta " + filePath);
 
             }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
+        }
+
+        [HttpPost("UpMul")]
+        public async Task<ActionResult> CargaMul(List<IFormFile> files, [FromHeader] string folder)
+        {
+            try
+            {
+                string ruta = _env.ContentRootPath + "wwwroot\\" + folder;
+                string folderEmp = Path.Combine(ruta);
+                if (!Directory.Exists(folderEmp))
+                {
+                    Directory.CreateDirectory(folderEmp);
+                }
+                string folderName;
+                string monthName = "F" + DateTime.Today.ToString("yyyy_MM");
+                folderName = Path.Combine(folderEmp, monthName);
+                if (!Directory.Exists(folderName))
+                {
+                    Directory.CreateDirectory(folderName);
+                }
+
+                foreach (var file in files)
+                {
+                    var pathToSave = Path.Combine(folderName, file.FileName);
+                    var stream = new FileStream(pathToSave, FileMode.Create);
+                    //Para sobreescribir
+                    await file.CopyToAsync(stream);
+
+                }
+                return Ok(folderName);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
         }
     }
 }
