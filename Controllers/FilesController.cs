@@ -31,7 +31,7 @@ namespace UploadFiles.Controllers
                 foreach (var file in files)
                 {
                     // Se obtiene el nombre del archivo
-                    var fileName = Path.GetFileName($"{file.FileName}");
+                    var fileName = $"{Guid.NewGuid()}{Path.GetFileName(file.FileName)}";
 
                     // Se crea el path completo del archivo con la carpeta y el nombre
                     filePath = Path.Combine(ruta, fileName);
