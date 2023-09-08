@@ -4,9 +4,11 @@ namespace UploadFiles.Controllers
 {
     public class FilesController : Controller
     {
-        public IActionResult Index()
+        private readonly IWebHostEnvironment _env;
+
+        public FilesController(IWebHostEnvironment env)
         {
-            return View();
+            this._env = env;
         }
 
         [HttpPost("UploadFiles")]
@@ -14,12 +16,17 @@ namespace UploadFiles.Controllers
         {
             try
             {
-                // Se crea la carpeta con el nombre dado si no existe
-                Directory.CreateDirectory(folderName);
+                string ruta = _env.ContentRootPath+ "wwwroot\\" + folderName;
+                if (!Directory.Exists(ruta))
+                {
+                    // Se crea la carpeta con el nombre dado si no existe
+                    Directory.CreateDirectory(ruta);
+
+                }
 
                 // Se crea una variable para almacenar las URLs de los archivos
                 var fileUrls = "";
-
+                var filePath = "";
                 // Se recorre la lista de archivos y se guardan en la carpeta
                 foreach (var file in files)
                 {
@@ -27,7 +34,7 @@ namespace UploadFiles.Controllers
                     var fileName = Path.GetFileName(file.FileName);
 
                     // Se crea el path completo del archivo con la carpeta y el nombre
-                    var filePath = Path.Combine(folderName, fileName);
+                    filePath = Path.Combine(ruta, fileName);
 
                     // Se copia el contenido del archivo al path creado
                     using (var stream = new FileStream(filePath, FileMode.Create))
@@ -36,7 +43,7 @@ namespace UploadFiles.Controllers
                     }
 
                     // Se construye la URL del archivo usando el nombre del host y el path relativo
-                    var fileUrl = $"{Request.Scheme}://{Request.Host}/{folderName}/{fileName}";
+                    var fileUrl = $"{Request.Scheme}://{Request.Host}/{filePath}";
 
                     // Se agrega la URL del archivo a la variable, separada por un signo |
                     fileUrls += fileUrl + "|";
@@ -46,7 +53,7 @@ namespace UploadFiles.Controllers
                 fileUrls = fileUrls.TrimEnd('|');
 
                 // Se devuelve un mensaje de éxito con las URLs de los archivos
-                return Ok("Los archivos se han guardado correctamente en la carpeta " + folderName + ". Las URLs de los archivos son: " + fileUrls);
+                return Ok("Los archivos se han guardado correctamente en la carpeta " + filePath + ". Las URLs de los archivos son: " + fileUrls);
 
             }
             catch (Exception ex)
